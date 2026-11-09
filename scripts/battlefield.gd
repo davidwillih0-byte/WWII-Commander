@@ -252,7 +252,19 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventScreenDrag:
 		if touch_points.has(event.index):
 			var previous: Vector2 = touch_points[event.index]
-			_pan_camera(event.position - previous)
+			var other_index := -1
+			for key in touch_points.keys():
+				if key != event.index:
+					other_index = int(key)
+					break
+			if other_index >= 0:
+				var other_position: Vector2 = touch_points[other_index]
+				var old_distance := previous.distance_to(other_position)
+				var new_distance := event.position.distance_to(other_position)
+				camera_distance = clamp(camera_distance - (new_distance - old_distance) * 0.12, CAMERA_MIN, CAMERA_MAX)
+				_update_camera()
+			else:
+				_pan_camera(event.position - previous)
 			touch_points[event.index] = event.position
 
 func _pan_camera(delta: Vector2) -> void:
