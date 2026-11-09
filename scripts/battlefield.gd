@@ -194,7 +194,8 @@ func _panzer_iv(pos: Vector3, heading: float) -> void:
 			_cylinder("Wheel hub", Vector3(side * 2.64, 0.72, wheel_z), 0.16, 0.06, Color(0.43, 0.42, 0.34), tank, Vector3(0, 0, 90))
 	# Hull, front glacis and rear deck.
 	_box("Armoured hull", Vector3(0, 1.45, 0), Vector3(4.0, 1.45, 6.2), green, tank)
-	_box("Sloped front plate", Vector3(0, 1.75, -2.75), Vector3(3.8, 1.0, 0.35), dark_green, tank).rotation_degrees.x = -22
+	var glacis := _box("Sloped front plate", Vector3(0, 1.75, -2.75), Vector3(3.8, 1.0, 0.35), dark_green, tank)
+	glacis.rotation_degrees.x = -22
 	_box("Engine deck", Vector3(0, 2.25, 2.05), Vector3(3.5, 0.35, 1.6), dark_green, tank)
 	# Turret and long gun barrel.
 	_box("Turret", Vector3(0, 2.55, -0.25), Vector3(2.7, 1.15, 2.8), green, tank)
