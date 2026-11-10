@@ -5,18 +5,20 @@
 - [x] Confirm Android-first, offline-first direction.
 - [x] Confirm free-only resources and explicit approval for external accounts or spending.
 - [x] Establish repository and documentation.
-- [ ] Pin Godot 4 version and mobile renderer.
-- [ ] Add first valid Godot project.
+- [x] Pin Godot 4.7.2 and Compatibility renderer.
+- [x] Add first valid Godot project and obtain a successful Android debug APK.
+- [x] Owner verified the first APK launches and renders on Android.
 
 ## Stage 1 — 3D battlefield foundation
-- [ ] Large terrain blockout with elevation, roads, fields, forest, settlement.
-- [ ] Elevated tactical camera and smooth zoom.
-- [ ] Lighting and atmosphere tuned for readability and mobile performance.
-- [ ] Run on target Android device.
+- [x] Initial terrain blockout with roads, fields, forest, settlement, tank and infantry placeholders.
+- [x] Elevated tactical camera with touch pan and pinch zoom.
+- [ ] Expanded 640-unit division-scale test area (Phase 2 branch; awaiting build and phone validation).
+- [ ] Lighting, terrain readability, and atmosphere tuning.
+- [ ] Profile performance on target Android device.
 
 ## Stage 2 — Units and movement
-- [ ] 3D placeholder infantry and vehicle units.
-- [ ] Formation placement and movement.
+- [ ] Selectable 3D infantry and vehicle formations.
+- [ ] Formation placement and real-time movement.
 - [ ] Basic navigation and obstacle handling.
 - [ ] Visible unit strength/readiness UI.
 
