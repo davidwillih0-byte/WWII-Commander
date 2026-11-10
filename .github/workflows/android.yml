@@ -44,8 +44,9 @@ jobs:
           install -m 0755 /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 "$HOME/.local/bin/godot"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           curl -fL "https://downloads.godotengine.org/?version=4.7.2&flavor=stable&slug=export_templates.tpz" -o /tmp/export_templates.tpz
-          unzip -o /tmp/export_templates.tpz -d "$HOME/.local/share/godot/export_templates/4.7.2.stable"
-          find "$HOME/.local/share/godot/export_templates/4.7.2.stable" -maxdepth 2 -type f | head -30
+          unzip -o /tmp/export_templates.tpz -d /tmp/godot-templates
+          cp -a /tmp/godot-templates/templates/. "$HOME/.local/share/godot/export_templates/4.7.2.stable/"
+          find "$HOME/.local/share/godot/export_templates/4.7.2.stable" -maxdepth 1 -type f | head -30
 
       - name: Configure Godot Android SDK paths
         run: |
