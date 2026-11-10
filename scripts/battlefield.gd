@@ -2,12 +2,13 @@ extends Node3D
 ## WWII Commander — Eastern Front visual upgrade.
 ## Procedural low-poly 3D assets, designed as a lightweight Android prototype.
 
-const WORLD_SIZE := 240.0
-const CAMERA_MIN := 30.0
-const CAMERA_MAX := 125.0
+const WORLD_SIZE := 640.0
+const CAMERA_MIN := 45.0
+const CAMERA_MAX := 360.0
 
 var camera: Camera3D
-var camera_distance := 104.0
+var camera_distance := 270.0
+var camera_target := Vector3.ZERO
 var dragging := false
 var last_pointer := Vector2.ZERO
 var touch_points: Dictionary = {}
@@ -16,6 +17,7 @@ func _ready() -> void:
 	_build_world()
 	_build_camera()
 	_build_battlefield()
+	_build_extended_map()
 	_build_hud()
 	print("WWII COMMANDER: Eastern Front visual upgrade loaded.")
 
@@ -116,14 +118,15 @@ func _build_world() -> void:
 func _build_camera() -> void:
 	camera = Camera3D.new()
 	add_child(camera)
-	camera.position = Vector3(0, camera_distance * 0.72, camera_distance * 0.82)
+	camera.position = camera_target + Vector3(0, camera_distance * 0.72, camera_distance * 0.82)
+	camera.far = 1200.0
 	camera.fov = 52.0
 	camera.look_at(Vector3.ZERO, Vector3.UP)
 	camera.current = true
 
 func _update_camera() -> void:
-	camera.position = Vector3(0, camera_distance * 0.72, camera_distance * 0.82)
-	camera.look_at(Vector3.ZERO, Vector3.UP)
+	camera.position = camera_target + Vector3(0, camera_distance * 0.72, camera_distance * 0.82)
+	camera.look_at(camera_target, Vector3.UP)
 
 func _build_battlefield() -> void:
 	# Mixed woodland belts and scattered trees.
@@ -158,6 +161,53 @@ func _build_battlefield() -> void:
 	_panzer_iv(Vector3(-53, 0, 45), 6.0)
 	_infantry_squad(Vector3(-7, 0, 44))
 	_infantry_squad(Vector3(18, 0, -5))
+
+func _build_extended_map() -> void:
+	# A much wider operational area: separate farming districts, secondary roads,
+	# wooded belts, settlements and defensive positions. Keep geometry lightweight.
+	for x in [-220.0, -80.0, 80.0, 220.0]:
+		for z in [-210.0, -60.0, 100.0, 235.0]:
+			var field_color := Color(0.34, 0.35, 0.23) if int(abs(x + z)) % 2 == 0 else Color(0.39, 0.36, 0.24)
+			_box("Distant agricultural field", Vector3(x, -0.02, z), Vector3(112, 0.14, 96), field_color)
+	# Secondary road network links the villages and gives armour room to manoeuvre.
+	for z in [-190.0, 145.0]:
+		_box("Secondary road shoulder", Vector3(0, 0.04, z), Vector3(WORLD_SIZE, 0.16, 12), Color(0.31, 0.29, 0.23))
+		_box("Secondary road surface", Vector3(0, 0.14, z), Vector3(WORLD_SIZE, 0.12, 7), Color(0.20, 0.20, 0.18))
+	for x in [-190.0, 185.0]:
+		_box("Cross-country road shoulder", Vector3(x, 0.04, 0), Vector3(12, 0.16, WORLD_SIZE), Color(0.31, 0.29, 0.23))
+		_box("Cross-country road surface", Vector3(x, 0.14, 0), Vector3(7, 0.12, WORLD_SIZE), Color(0.20, 0.20, 0.18))
+	# Additional woodland belts around the outer approaches and between fields.
+	for i in range(34):
+		var t := float(i)
+		_tree(Vector3(-295.0 + t * 18.0, 0, -270.0 + sin(t * 0.42) * 12.0), 0.9 + float(i % 4) * 0.12)
+		_tree(Vector3(-295.0 + t * 18.0, 0, 270.0 + cos(t * 0.38) * 10.0), 0.9 + float(i % 3) * 0.14)
+	for i in range(22):
+		var t := float(i)
+		_tree(Vector3(-275.0 + sin(t * 0.55) * 16.0, 0, -210.0 + t * 19.0), 0.85 + float(i % 4) * 0.13)
+		_tree(Vector3(275.0 + cos(t * 0.48) * 15.0, 0, -210.0 + t * 19.0), 0.9 + float(i % 3) * 0.12)
+	# Three small settlements create distinct tactical objectives.
+	_build_village(Vector3(-205, 0, -125), 5)
+	_build_village(Vector3(190, 0, 155), 6)
+	_build_village(Vector3(205, 0, -205), 5)
+	# Isolated farmsteads and field-edge cover.
+	for pos in [Vector3(-245, 0, 35), Vector3(245, 0, 35), Vector3(-45, 0, 245), Vector3(45, 0, -245)]:
+		_house(pos, 1)
+	# Distant low ridgelines and a few defensive earthworks.
+	_sphere("Northern ridge", Vector3(0, 0, -285), Vector3(105, 5.0, 25), Color(0.31, 0.33, 0.24))
+	_sphere("Southern ridge", Vector3(0, 0, 285), Vector3(115, 4.0, 24), Color(0.32, 0.33, 0.24))
+	for i in range(3):
+		var x := -150.0 + float(i) * 145.0
+		_box("Distant defensive trench", Vector3(x, 0.22, -150), Vector3(34, 0.4, 2.6), Color(0.25, 0.24, 0.18))
+		_box("Distant trench shadow", Vector3(x, 0.40, -150), Vector3(29, 0.1, 1.1), Color(0.12, 0.13, 0.11))
+
+func _build_village(center: Vector3, house_count: int) -> void:
+	for i in range(house_count):
+		var row := int(i / 3)
+		var col := i % 3
+		var offset := Vector3(float(col) * 15.0 - 15.0, 0, float(row) * 17.0 - 8.0)
+		_house(center + offset, i % 3)
+	# A simple open village square and connecting lane.
+	_box("Village square", center + Vector3(0, 0.02, 28), Vector3(34, 0.12, 18), Color(0.34, 0.32, 0.25))
 
 func _tree(pos: Vector3, size_factor: float) -> void:
 	var trunk_height := 4.2 * size_factor
@@ -236,13 +286,13 @@ func _build_hud() -> void:
 	title.add_theme_color_override("font_color", Color(0.96, 0.92, 0.80))
 	layer.add_child(title)
 	var subtitle := Label.new()
-	subtitle.text = "GERMAN ARMOURED FORMATION  |  TERRAIN & VEHICLE VISUAL UPGRADE"
+	subtitle.text = "GERMAN ARMOURED FORMATION  |  EXPANDED DIVISION-SCALE TEST AREA"
 	subtitle.position = Vector2(24, 52)
 	subtitle.add_theme_font_size_override("font_size", 14)
 	subtitle.add_theme_color_override("font_color", Color(0.91, 0.91, 0.84))
 	layer.add_child(subtitle)
 	var controls := Label.new()
-	controls.text = "DRAG: PAN CAMERA     •     PINCH: ZOOM"
+	controls.text = "DRAG: PAN CAMERA     •     PINCH: ZOOM     •     WIDE OPERATIONAL AREA"
 	controls.position = Vector2(22, 680)
 	controls.add_theme_font_size_override("font_size", 14)
 	controls.add_theme_color_override("font_color", Color.WHITE)
@@ -287,8 +337,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _pan_camera(delta: Vector2) -> void:
 	var pan_scale := camera_distance * 0.004
-	camera.position.x -= delta.x * pan_scale
-	camera.position.z -= delta.y * pan_scale
-	camera.position.x = clamp(camera.position.x, -85.0, 85.0)
-	camera.position.z = clamp(camera.position.z, -85.0, 85.0)
-	camera.look_at(Vector3.ZERO, Vector3.UP)
+	camera_target.x -= delta.x * pan_scale
+	camera_target.z -= delta.y * pan_scale
+	var map_limit := WORLD_SIZE * 0.43
+	camera_target.x = clamp(camera_target.x, -map_limit, map_limit)
+	camera_target.z = clamp(camera_target.z, -map_limit, map_limit)
+	_update_camera()
