@@ -1,3 +1,29 @@
+# Phase 3 — Realistic Visual Upgrade Status
+
+## Phase 2 phone feedback
+The owner confirmed the Phase 2 map is wider than the first build, but still does not feel wide enough for friendly and enemy formations to manoeuvre. The next design target is a substantially more convincing operational battlefield.
+
+## Phase 3 visual changes on branch `phase-3-realistic-visuals`
+- Added world-space procedural ground colour variation to reduce the appearance of a single flat terrain colour.
+- Added restrained distance fog for atmospheric depth.
+- Changed tree crowns from rounded spheres to layered conifer silhouettes.
+- Changed village roofs from flat blocks to pitched roof planes.
+- Added `docs/VISUAL_BENCHMARK.md` defining the owner's US Conflict-inspired stylized-realistic visual target and Android performance acceptance checks.
+- The proposed 8 km × 8 km operational area remains a design target; the current 640-unit world is not yet a verified 8 km map.
+
+## Not yet verified
+- Phase 3 has not yet passed the Android build or owner phone test.
+- Procedural models remain placeholders and are not yet equivalent to US Conflict's production art.
+- Map scale, two-sided deployment space, performance, memory and frame rate still require measurement.
+
+## Next validation steps
+1. Confirm Godot headless import/runtime and Android export succeed.
+2. Install the new APK and inspect close and wide views.
+3. Confirm no rendering errors, crashes or unacceptable slowdown.
+4. Only then continue with terrain detail, asset quality and operational map layout.
+
+---
+
 # Phase 2 — Expanded Battlefield Prototype Status
 
 ## Working baseline
