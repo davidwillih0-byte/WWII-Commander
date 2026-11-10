@@ -8,6 +8,7 @@ const CAMERA_MAX := 360.0
 
 var camera: Camera3D
 var camera_distance := 270.0
+var camera_yaw_degrees := 0.0
 var camera_target := Vector3.ZERO
 var dragging := false
 var last_pointer := Vector2.ZERO
@@ -126,14 +127,16 @@ func _build_world() -> void:
 func _build_camera() -> void:
 	camera = Camera3D.new()
 	add_child(camera)
-	camera.position = camera_target + Vector3(0, camera_distance * 0.72, camera_distance * 0.82)
 	camera.far = 1200.0
 	camera.fov = 52.0
-	camera.look_at(Vector3.ZERO, Vector3.UP)
 	camera.current = true
+	_update_camera()
 
 func _update_camera() -> void:
-	camera.position = camera_target + Vector3(0, camera_distance * 0.72, camera_distance * 0.82)
+	var yaw := deg_to_rad(camera_yaw_degrees)
+	var horizontal_distance := camera_distance * 0.82
+	var offset := Vector3(sin(yaw) * horizontal_distance, camera_distance * 0.72, cos(yaw) * horizontal_distance)
+	camera.position = camera_target + offset
 	camera.look_at(camera_target, Vector3.UP)
 
 func _build_battlefield() -> void:
@@ -336,11 +339,46 @@ func _build_hud() -> void:
 	subtitle.add_theme_color_override("font_color", Color(0.91, 0.91, 0.84))
 	layer.add_child(subtitle)
 	var controls := Label.new()
-	controls.text = "DRAG: PAN CAMERA     •     PINCH: ZOOM     •     WIDE OPERATIONAL AREA"
+	controls.text = "DRAG: PAN     •     PINCH OR +/-: ZOOM     •     SLIDER: ORBIT CAMERA"
 	controls.position = Vector2(22, 680)
 	controls.add_theme_font_size_override("font_size", 14)
 	controls.add_theme_color_override("font_color", Color.WHITE)
 	layer.add_child(controls)
+
+	var orbit_label := Label.new()
+	orbit_label.text = "CAMERA ORBIT"
+	orbit_label.position = Vector2(22, 720)
+	orbit_label.add_theme_font_size_override("font_size", 15)
+	orbit_label.add_theme_color_override("font_color", Color.WHITE)
+	layer.add_child(orbit_label)
+
+	var orbit_slider := HSlider.new()
+	orbit_slider.name = "CameraOrbitSlider"
+	orbit_slider.min_value = -180.0
+	orbit_slider.max_value = 180.0
+	orbit_slider.step = 1.0
+	orbit_slider.value = camera_yaw_degrees
+	orbit_slider.position = Vector2(150, 716)
+	orbit_slider.size = Vector2(420, 36)
+	orbit_slider.custom_minimum_size = Vector2(260, 36)
+	orbit_slider.value_changed.connect(_on_orbit_slider_changed)
+	layer.add_child(orbit_slider)
+
+	var zoom_out := Button.new()
+	zoom_out.text = "−"
+	zoom_out.position = Vector2(590, 708)
+	zoom_out.size = Vector2(58, 48)
+	zoom_out.add_theme_font_size_override("font_size", 28)
+	zoom_out.pressed.connect(_on_zoom_out_pressed)
+	layer.add_child(zoom_out)
+
+	var zoom_in := Button.new()
+	zoom_in.text = "+"
+	zoom_in.position = Vector2(654, 708)
+	zoom_in.size = Vector2(58, 48)
+	zoom_in.add_theme_font_size_override("font_size", 28)
+	zoom_in.pressed.connect(_on_zoom_in_pressed)
+	layer.add_child(zoom_in)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -379,10 +417,24 @@ func _unhandled_input(event: InputEvent) -> void:
 				_pan_camera(event.position - previous)
 			touch_points[event.index] = event.position
 
+func _on_orbit_slider_changed(value: float) -> void:
+	camera_yaw_degrees = value
+	_update_camera()
+
+func _on_zoom_in_pressed() -> void:
+	camera_distance = max(CAMERA_MIN, camera_distance - 18.0)
+	_update_camera()
+
+func _on_zoom_out_pressed() -> void:
+	camera_distance = min(CAMERA_MAX, camera_distance + 18.0)
+	_update_camera()
+
 func _pan_camera(delta: Vector2) -> void:
 	var pan_scale := camera_distance * 0.004
-	camera_target.x -= delta.x * pan_scale
-	camera_target.z -= delta.y * pan_scale
+	var yaw := deg_to_rad(camera_yaw_degrees)
+	var right := Vector3(cos(yaw), 0, -sin(yaw))
+	var forward := Vector3(-sin(yaw), 0, -cos(yaw))
+	camera_target += right * (-delta.x * pan_scale) + forward * (delta.y * pan_scale)
 	var map_limit := WORLD_SIZE * 0.43
 	camera_target.x = clamp(camera_target.x, -map_limit, map_limit)
 	camera_target.z = clamp(camera_target.z, -map_limit, map_limit)
