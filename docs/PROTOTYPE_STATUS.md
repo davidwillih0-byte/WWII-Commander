@@ -1,32 +1,33 @@
-# First 3D Battlefield Prototype — Status
+# Phase 2 — Expanded Battlefield Prototype Status
 
-## Files added
-- `project.godot`: Godot 4 project settings using the Compatibility renderer.
-- `scenes/main.tscn`: main scene.
-- `scripts/battlefield.gd`: procedural 3D battlefield blockout, environment, placeholder vehicles/infantry, HUD, and camera input.
+## Working baseline
+The owner installed and launched the previous Android debug APK on an Android phone. The owner confirmed that the scene opened, the battlefield rendered, the tank and infantry were visible, the camera controls worked, and there was no grey screen or crash. This is the verified baseline to preserve.
 
-## Included in this milestone
-- Large flat terrain blockout with field clearings.
-- Roads, low terrain mounds, tree belts, and a small settlement.
-- Simple original placeholder tank silhouettes and infantry figures.
-- Elevated tactical camera.
-- Mouse drag and wheel zoom for editor/desktop testing.
-- One-finger touch drag and two-finger pinch zoom for mobile testing.
-- Basic battlefield identification HUD.
+## Phase 2 changes on branch `phase-2-large-battlefield`
+- Expanded the procedural terrain footprint from 240 to 640 world units.
+- Increased the tactical camera's maximum zoom distance and adjusted its initial view for the wider area.
+- Added a camera target/pivot so panning moves the viewed area across the expanded map instead of only shifting the camera around the origin.
+- Extended the road network with secondary east-west and north-south routes.
+- Added additional agricultural field plots, woodland belts, ridgelines, field-edge farmsteads, defensive trenches, and three small settlements.
+- Kept the procedural low-poly approach and Compatibility renderer to limit Android asset and rendering costs.
 
-## Not included yet
-- Historically accurate 3D vehicle or soldier models.
-- Verified 7th Panzer Division order of battle or exact troop strengths.
-- Moving units, command orders, combat, pathfinding, or enemy AI.
-- Final terrain sculpting, animations, effects, sound, or campaign systems.
-- A built APK or verified on-device performance test.
+## Not yet verified
+- This Phase 2 branch has not yet been run through Godot import/runtime validation or exported to a new APK.
+- The expanded battlefield has not yet been tested on the owner's phone.
+- Actual map traversal, frame rate, memory use, and touch camera behaviour across the full map remain to be checked.
+- No real-time unit movement, command orders, combat simulation, pathfinding, enemy AI, division roster, or campaign system is implemented yet.
+- Models remain procedural placeholders, not historically accurate production assets.
 
-## How to test
-1. Open the repository in a Godot 4.3-or-newer editor.
-2. Import the project by selecting the folder containing `project.godot`.
-3. Run the project (F6/F5 as appropriate; use F6 for the main scene if needed).
-4. On a touch device, drag with one finger to pan and pinch with two fingers to zoom.
-5. On desktop, drag with the left mouse button to pan and use the mouse wheel to zoom.
+## Next validation steps
+1. Run the Android debug workflow from this branch.
+2. Confirm the exported APK artifact contains the expected APK.
+3. Install the new APK on the target phone and test launch, pan, pinch zoom, and performance.
+4. If the larger map is stable, proceed to selectable formations and real-time movement orders.
 
-## Validation status
-The files have been committed to GitHub, but this environment has not run the Godot editor or Android export. Treat the prototype as an initial code milestone pending an actual Godot import/run test and APK test on the owner's phone. Fix any engine/parser errors found during that test before expanding the game.
+## Controls
+- One-finger drag: pan camera.
+- Two-finger pinch: zoom.
+- Desktop left-drag: pan.
+- Desktop mouse wheel: zoom.
+
+Do not describe Phase 2 as phone-tested until the owner reports a successful test of the new APK.

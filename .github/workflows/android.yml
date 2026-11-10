@@ -3,7 +3,7 @@ name: Android Debug APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, phase-2-large-battlefield]
     paths:
       - "**"
       - ".github/workflows/android.yml"
