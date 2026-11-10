@@ -339,46 +339,11 @@ func _build_hud() -> void:
 	subtitle.add_theme_color_override("font_color", Color(0.91, 0.91, 0.84))
 	layer.add_child(subtitle)
 	var controls := Label.new()
-	controls.text = "DRAG: PAN     •     PINCH OR +/-: ZOOM     •     SLIDER: ORBIT CAMERA"
+	controls.text = "ONE FINGER: PAN  •  TWO FINGERS: TWIST TO ORBIT  •  PINCH: ZOOM"
 	controls.position = Vector2(22, 680)
 	controls.add_theme_font_size_override("font_size", 14)
 	controls.add_theme_color_override("font_color", Color.WHITE)
 	layer.add_child(controls)
-
-	var orbit_label := Label.new()
-	orbit_label.text = "CAMERA ORBIT"
-	orbit_label.position = Vector2(22, 720)
-	orbit_label.add_theme_font_size_override("font_size", 15)
-	orbit_label.add_theme_color_override("font_color", Color.WHITE)
-	layer.add_child(orbit_label)
-
-	var orbit_slider := HSlider.new()
-	orbit_slider.name = "CameraOrbitSlider"
-	orbit_slider.min_value = -180.0
-	orbit_slider.max_value = 180.0
-	orbit_slider.step = 1.0
-	orbit_slider.value = camera_yaw_degrees
-	orbit_slider.position = Vector2(150, 716)
-	orbit_slider.size = Vector2(420, 36)
-	orbit_slider.custom_minimum_size = Vector2(260, 36)
-	orbit_slider.value_changed.connect(_on_orbit_slider_changed)
-	layer.add_child(orbit_slider)
-
-	var zoom_out := Button.new()
-	zoom_out.text = "−"
-	zoom_out.position = Vector2(590, 708)
-	zoom_out.size = Vector2(58, 48)
-	zoom_out.add_theme_font_size_override("font_size", 28)
-	zoom_out.pressed.connect(_on_zoom_out_pressed)
-	layer.add_child(zoom_out)
-
-	var zoom_in := Button.new()
-	zoom_in.text = "+"
-	zoom_in.position = Vector2(654, 708)
-	zoom_in.size = Vector2(58, 48)
-	zoom_in.add_theme_font_size_override("font_size", 28)
-	zoom_in.pressed.connect(_on_zoom_in_pressed)
-	layer.add_child(zoom_in)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -400,34 +365,29 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			touch_points.erase(event.index)
 	elif event is InputEventScreenDrag:
-		if touch_points.has(event.index):
-			var previous: Vector2 = touch_points[event.index]
-			var other_index := -1
-			for key in touch_points.keys():
-				if key != event.index:
-					other_index = int(key)
-					break
-			if other_index >= 0:
-				var other_position: Vector2 = touch_points[other_index]
-				var old_distance: float = previous.distance_to(other_position)
-				var new_distance: float = event.position.distance_to(other_position)
-				camera_distance = clamp(camera_distance - (new_distance - old_distance) * 0.12, CAMERA_MIN, CAMERA_MAX)
-				_update_camera()
-			else:
-				_pan_camera(event.position - previous)
+		if not touch_points.has(event.index):
 			touch_points[event.index] = event.position
-
-func _on_orbit_slider_changed(value: float) -> void:
-	camera_yaw_degrees = value
-	_update_camera()
-
-func _on_zoom_in_pressed() -> void:
-	camera_distance = max(CAMERA_MIN, camera_distance - 18.0)
-	_update_camera()
-
-func _on_zoom_out_pressed() -> void:
-	camera_distance = min(CAMERA_MAX, camera_distance + 18.0)
-	_update_camera()
+			return
+		var previous: Vector2 = touch_points[event.index]
+		var other_index := -1
+		for key in touch_points.keys():
+			if int(key) != event.index:
+				other_index = int(key)
+				break
+		if other_index >= 0:
+			var other_previous: Vector2 = touch_points[other_index]
+			var old_vector := previous - other_previous
+			var new_vector := event.position - other_previous
+			var old_distance := old_vector.length()
+			var new_distance := new_vector.length()
+			if old_distance > 8.0 and new_distance > 8.0:
+				var angle_delta := wrapf(new_vector.angle() - old_vector.angle(), -PI, PI)
+				camera_yaw_degrees = wrapf(camera_yaw_degrees + rad_to_deg(angle_delta), -180.0, 180.0)
+				camera_distance = clamp(camera_distance - (new_distance - old_distance) * 0.18, CAMERA_MIN, CAMERA_MAX)
+				_update_camera()
+		else:
+			_pan_camera(event.position - previous)
+		touch_points[event.index] = event.position
 
 func _pan_camera(delta: Vector2) -> void:
 	var pan_scale := camera_distance * 0.004
