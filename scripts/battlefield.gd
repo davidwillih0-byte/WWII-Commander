@@ -85,6 +85,9 @@ func _build_world() -> void:
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color(0.78, 0.79, 0.72)
 	environment.ambient_light_energy = 0.8
+	environment.fog_enabled = true
+	environment.fog_light_color = Color(0.62, 0.64, 0.58)
+	environment.fog_density = 0.0007
 	environment_node.environment = environment
 	add_child(environment_node)
 
@@ -94,7 +97,12 @@ func _build_world() -> void:
 	sun.shadow_enabled = true
 	add_child(sun)
 
-	_box("Base terrain", Vector3(0, -1.2, 0), Vector3(WORLD_SIZE, 2.0, WORLD_SIZE), Color(0.28, 0.31, 0.22))
+	var ground := _box("Base terrain", Vector3(0, -1.2, 0), Vector3(WORLD_SIZE, 2.0, WORLD_SIZE), Color(0.28, 0.31, 0.22))
+	var ground_shader := Shader.new()
+	ground_shader.code = "shader_type spatial;\nrender_mode diffuse_burley;\nvarying vec3 world_position;\nvoid vertex() { world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }\nfloat hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }\nvoid fragment() { vec2 p = world_position.xz * 0.075; float broad = sin(p.x * 0.7 + sin(p.y * 0.45)) * cos(p.y * 0.6); float grain = hash(floor(world_position.xz * 1.8)) * 0.12; float variation = clamp(0.48 + broad * 0.18 + grain, 0.0, 1.0); vec3 earth = vec3(0.20, 0.22, 0.15); vec3 grass = vec3(0.34, 0.34, 0.22); ALBEDO = mix(earth, grass, variation); ROUGHNESS = 0.98; }"
+	var ground_material := ShaderMaterial.new()
+	ground_material.shader = ground_shader
+	ground.material_override = ground_material
 	# Broad, irregular field plots.
 	_box("West field", Vector3(-58, -0.02, -38), Vector3(76, 0.16, 64), Color(0.37, 0.37, 0.23))
 	_box("South field", Vector3(48, -0.01, 54), Vector3(82, 0.18, 48), Color(0.39, 0.36, 0.22))
@@ -212,8 +220,21 @@ func _build_village(center: Vector3, house_count: int) -> void:
 func _tree(pos: Vector3, size_factor: float) -> void:
 	var trunk_height := 4.2 * size_factor
 	_cylinder("Tree trunk", pos + Vector3(0, trunk_height * 0.5, 0), 0.38 * size_factor, trunk_height, Color(0.25, 0.17, 0.11))
-	_sphere("Lower foliage", pos + Vector3(0, 4.0 * size_factor, 0), Vector3(2.1, 2.8, 2.0) * size_factor, Color(0.12, 0.21, 0.12))
-	_sphere("Upper foliage", pos + Vector3(0.2, 5.5 * size_factor, 0.1), Vector3(1.7, 2.3, 1.6) * size_factor, Color(0.16, 0.25, 0.14))
+	_tree_crown(pos + Vector3(0, 3.6 * size_factor, 0), 2.5 * size_factor, 3.7 * size_factor, Color(0.10, 0.18, 0.10))
+	_tree_crown(pos + Vector3(0, 5.5 * size_factor, 0), 1.9 * size_factor, 3.3 * size_factor, Color(0.14, 0.23, 0.12))
+
+func _tree_crown(pos: Vector3, radius: float, height: float, tint: Color) -> void:
+	var crown := MeshInstance3D.new()
+	crown.name = "Layered conifer crown"
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.12 * (radius / 2.5)
+	mesh.bottom_radius = radius
+	mesh.height = height
+	mesh.radial_segments = 9
+	crown.mesh = mesh
+	crown.position = pos
+	crown.material_override = _material(tint)
+	add_child(crown)
 
 func _house(pos: Vector3, variant: int) -> void:
 	var wall_colors := [Color(0.48, 0.43, 0.34), Color(0.43, 0.40, 0.33), Color(0.50, 0.46, 0.37)]
@@ -221,7 +242,10 @@ func _house(pos: Vector3, variant: int) -> void:
 	var wall_color: Color = wall_colors[variant]
 	var roof_color: Color = roof_colors[variant]
 	_box("Village house walls", pos + Vector3(0, 2.0, 0), Vector3(8, 4, 7), wall_color)
-	_box("Village roof", pos + Vector3(0, 4.35, 0), Vector3(9.2, 0.8, 8.2), roof_color)
+	var roof_left := _box("Pitched roof left", pos + Vector3(0, 5.0, -1.85), Vector3(9.6, 0.38, 4.7), roof_color)
+	roof_left.rotation_degrees.x = -31.0
+	var roof_right := _box("Pitched roof right", pos + Vector3(0, 5.0, 1.85), Vector3(9.6, 0.38, 4.7), roof_color)
+	roof_right.rotation_degrees.x = 31.0
 	_box("Front door", pos + Vector3(0, 1.0, -3.56), Vector3(1.2, 2.0, 0.12), Color(0.19, 0.14, 0.10))
 	_box("Window", pos + Vector3(-2.3, 2.3, -3.58), Vector3(1.25, 1.0, 0.12), Color(0.12, 0.17, 0.18))
 
