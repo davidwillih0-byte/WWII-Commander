@@ -277,8 +277,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					break
 			if other_index >= 0:
 				var other_position: Vector2 = touch_points[other_index]
-				var old_distance := previous.distance_to(other_position)
-				var new_distance := event.position.distance_to(other_position)
+				var old_distance: float = previous.distance_to(other_position)
+				var new_distance: float = event.position.distance_to(other_position)
 				camera_distance = clamp(camera_distance - (new_distance - old_distance) * 0.12, CAMERA_MIN, CAMERA_MAX)
 				_update_camera()
 			else:
