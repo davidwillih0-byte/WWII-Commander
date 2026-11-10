@@ -13,7 +13,8 @@
 - [x] Initial terrain blockout with roads, fields, forest, settlement, tank and infantry placeholders.
 - [x] Elevated tactical camera with touch pan and pinch zoom.
 - [ ] Expanded 640-unit division-scale test area (Phase 2 branch; awaiting build and phone validation).
-- [ ] Lighting, terrain readability, and atmosphere tuning.
+- [ ] Lighting, terrain readability, and atmosphere tuning (visual benchmark: `docs/VISUAL_BENCHMARK.md`).
+- [ ] Replace procedural placeholders progressively with optimised, historically researched assets.
 - [ ] Profile performance on target Android device.
 
 ## Stage 2 — Units and movement
