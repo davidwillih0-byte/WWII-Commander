@@ -163,8 +163,9 @@ func _build_battlefield() -> void:
 	_box("Timber bunker", Vector3(68, 1.4, 45), Vector3(8, 2.8, 6), Color(0.28, 0.25, 0.18))
 	_box("Bunker roof", Vector3(68, 3.0, 45), Vector3(9, 0.55, 7), Color(0.22, 0.21, 0.17))
 
-	# German armoured platoon: detailed procedural Panzer IV-style silhouettes.
-	_panzer_iv(Vector3(-25, 0, 18), 0.0)
+	# First imported German vehicle test: Panzer III J. Keep a procedural
+	# fallback so the battlefield remains playable if an importer rejects the FBX.
+	_spawn_panzer_iii(Vector3(-25, 0, 18), 0.0)
 	_panzer_iv(Vector3(-39, 0, 32), -8.0)
 	_panzer_iv(Vector3(-53, 0, 45), 6.0)
 	_infantry_squad(Vector3(-7, 0, 44))
@@ -287,6 +288,25 @@ func _panzer_iv(pos: Vector3, heading: float) -> void:
 	marker.outline_size = 4
 	marker.modulate = Color(0.96, 0.91, 0.72)
 	tank.add_child(marker)
+
+func _spawn_panzer_iii(pos: Vector3, heading: float) -> void:
+	var imported_scene := load("res://assets/vehicles/german_tanks/Pz-III-J.fbx") as PackedScene
+	if imported_scene == null:
+		push_warning("Panzer III J FBX did not import as a PackedScene; using procedural fallback.")
+		_panzer_iv(pos, heading)
+		return
+	var imported_tank := imported_scene.instantiate() as Node3D
+	if imported_tank == null:
+		push_warning("Panzer III J FBX root is not Node3D; using procedural fallback.")
+		_panzer_iv(pos, heading)
+		return
+	imported_tank.name = "Imported Panzer III J"
+	imported_tank.position = pos
+	imported_tank.rotation_degrees.y = heading
+	# FBX authoring units vary; start conservatively and tune after visual inspection.
+	imported_tank.scale = Vector3.ONE
+	add_child(imported_tank)
+	print("WWII COMMANDER: Imported Panzer III J scene instantiated.")
 
 func _infantry_squad(origin: Vector3) -> void:
 	for i in range(8):
